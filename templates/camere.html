@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Camere e Unità - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-door-open"></i> Camere e Unità Ricettive</h1>
+    <a href="{{ url_for('nuova_camera') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nuova Camera/Unità
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if camere %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Struttura</th>
+                            <th>Nome Camera</th>
+                            <th>Tipo</th>
+                            <th>Capienza</th>
+                            <th>Prezzo Base/Notte</th>
+                            <th>Stato</th>
+                            <th class="text-end">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in camere %}
+                        <tr>
+                            <td>{{ c.struttura.nome }}</td>
+                            <td><strong>{{ c.nome }}</strong></td>
+                            <td>{{ c.tipo or '-' }}</td>
+                            <td>{{ c.capienza }} persone</td>
+                            <td>€ {{ "%.2f"|format(c.prezzo_base_notte) }}</td>
+                            <td>
+                                {% if c.stato == 'libera' %}
+                                    <span class="badge bg-success">Libera</span>
+                                {% elif c.stato == 'occupata' %}
+                                    <span class="badge bg-danger">Occupata</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ c.stato }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('modifica_camera', id=c.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ url_for('elimina_camera', id=c.id) }}" method="post" class="d-inline" onsubmit="return confirm('Eliminare questa camera?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-door-closed fs-1 text-muted"></i>
+                <p class="mt-3">Nessuna camera registrata.</p>
+                <a href="{{ url_for('nuova_camera') }}" class="btn btn-primary">Aggiungi la prima camera</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

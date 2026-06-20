@@ -1,0 +1,11 @@
+flask
+flask-sqlalchemy
+flask-login
+flask-mail
+werkzeug
+python-dotenv
+pandas
+openpyxl
+reportlab  # for PDF invoices
+requests  # for potential channel manager
+gunicorn

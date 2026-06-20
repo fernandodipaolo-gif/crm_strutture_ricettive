@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Prenotazioni - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-calendar-check"></i> Prenotazioni</h1>
+    <a href="{{ url_for('nuova_prenotazione') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nuova Prenotazione
+    </a>
+</div>
+
+<!-- Filtri -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Struttura</label>
+                <select name="struttura_id" class="form-select form-select-sm">
+                    <option value="">Tutte</option>
+                    {% for s in strutture %}
+                    <option value="{{ s.id }}" {% if filters.struttura_id == s.id %}selected{% endif %}>{{ s.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Stato</label>
+                <select name="stato" class="form-select form-select-sm">
+                    <option value="">Tutti</option>
+                    {% for st in ['richiesta', 'confermata', 'check-in', 'check-out', 'cancellata', 'no-show'] %}
+                    <option value="{{ st }}" {% if filters.stato == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Da data</label>
+                <input type="date" name="data_da" class="form-control form-control-sm" value="{{ filters.data_da }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">A data</label>
+                <input type="date" name="data_a" class="form-control form-control-sm" value="{{ filters.data_a }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filtra</button>
+                <a href="{{ url_for('lista_prenotazioni') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if prenotazioni %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Ospite</th>
+                            <th>Struttura</th>
+                            <th>Camera</th>
+                            <th>Stato</th>
+                            <th class="text-end">Prezzo</th>
+                            <th class="text-end">Saldo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in prenotazioni %}
+                        <tr>
+                            <td>
+                                <strong>{{ p.data_arrivo.strftime('%d/%m') }}</strong><br>
+                                <small class="text-muted">→ {{ p.data_partenza.strftime('%d/%m') }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ p.ospite.nome_completo }}</strong><br>
+                                <small class="text-muted">{{ p.ospite.telefono or p.ospite.email or '' }}</small>
+                            </td>
+                            <td>{{ p.struttura.nome }}</td>
+                            <td>{{ p.camera.nome }}</td>
+                            <td>
+                                {% set colors = {'confermata': 'success', 'richiesta': 'warning', 'check-in': 'primary', 'check-out': 'info', 'cancellata': 'danger', 'no-show': 'secondary'} %}
+                                <span class="badge badge-stato bg-{{ colors.get(p.stato, 'secondary') }}">{{ p.stato|capitalize }}</span>
+                            </td>
+                            <td class="text-end">€ {{ "%.2f"|format(p.prezzo_totale) }}</td>
+                            <td class="text-end">
+                                {% if p.saldo > 0 %}
+                                    <span class="text-danger fw-bold">€ {{ "%.2f"|format(p.saldo) }}</span>
+                                {% else %}
+                                    <span class="text-success">✓</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('dettaglio_prenotazione', id=p.id) }}" class="btn btn-sm btn-outline-primary">Dettagli</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1"></i>
+                <p class="mt-2">Nessuna prenotazione trovata con i filtri selezionati.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

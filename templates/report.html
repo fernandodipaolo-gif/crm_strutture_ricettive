@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Report - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4"><i class="bi bi-graph-up"></i> Report e Statistiche</h1>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Ricavi per Struttura (Mese Corrente)</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead><tr><th>Struttura</th><th class="text-end">Ricavo</th></tr></thead>
+                    <tbody>
+                        {% for r in ricavi_per_struttura %}
+                        <tr>
+                            <td>{{ r.nome }}</td>
+                            <td class="text-end fw-bold">€ {{ "%.2f"|format(r.ricavo) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">Prenotazioni per Stato</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for stato, count in stati_count %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ stato|capitalize }}</span>
+                        <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('export_prenotazioni') }}" class="btn btn-success">
+        <i class="bi bi-file-earmark-excel"></i> Esporta Prenotazioni in Excel
+    </a>
+    <small class="text-muted ms-2">(Richiede pandas e openpyxl installati)</small>
+</div>
+{% endblock %}

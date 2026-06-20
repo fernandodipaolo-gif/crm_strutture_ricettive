@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Ospiti - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-people"></i> Archivio Ospiti</h1>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control" placeholder="Cerca per nome, email o telefono..." value="{{ search }}">
+            <button type="submit" class="btn btn-primary">Cerca</button>
+            {% if search %}<a href="{{ url_for('lista_ospiti') }}" class="btn btn-outline-secondary">Reset</a>{% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if ospiti %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Contatti</th>
+                            <th>Documento</th>
+                            <th>Ultima prenotazione</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in ospiti %}
+                        <tr>
+                            <td><strong>{{ o.nome_completo }}</strong></td>
+                            <td>
+                                {% if o.email %}<small>{{ o.email }}</small><br>{% endif %}
+                                {% if o.telefono %}<small>{{ o.telefono }}</small>{% endif %}
+                            </td>
+                            <td><small>{{ o.documento_tipo or '' }} {{ o.documento_numero or '' }}</small></td>
+                            <td>
+                                {% if o.prenotazioni %}
+                                    {{ o.prenotazioni[0].data_arrivo.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('dettaglio_ospite', id=o.id) }}" class="btn btn-sm btn-outline-primary">Dettagli</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">Nessun ospite trovato.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

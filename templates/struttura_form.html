@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifica' if struttura else 'Nuova' }} Struttura - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ 'Modifica Struttura' if struttura else 'Nuova Struttura' }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Nome Struttura *</label>
+                            <input type="text" name="nome" class="form-control" value="{{ struttura.nome if struttura else '' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Seleziona...</option>
+                                {% for t in ['Hotel', 'B&amp;B', 'Appartamento', 'Villa', 'Residence', 'Agriturismo'] %}
+                                <option value="{{ t }}" {% if struttura and struttura.tipo == t %}selected{% endif %}>{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Indirizzo</label>
+                            <input type="text" name="indirizzo" class="form-control" value="{{ struttura.indirizzo if struttura else '' }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Città</label>
+                            <input type="text" name="citta" class="form-control" value="{{ struttura.citta if struttura else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">CAP</label>
+                            <input type="text" name="cap" class="form-control" value="{{ struttura.cap if struttura else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">N. Camere</label>
+                            <input type="number" name="num_camere" class="form-control" value="{{ struttura.num_camere if struttura else 0 }}">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Telefono</label>
+                            <input type="tel" name="telefono" class="form-control" value="{{ struttura.telefono if struttura else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" value="{{ struttura.email if struttura else '' }}">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Descrizione</label>
+                            <textarea name="descrizione" class="form-control" rows="3">{{ struttura.descrizione if struttura else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if struttura else 'Crea Struttura' }}
+                        </button>
+                        <a href="{{ url_for('lista_strutture') }}" class="btn btn-outline-secondary">Annulla</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

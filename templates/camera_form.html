@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifica' if camera else 'Nuova' }} Camera - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ 'Modifica Camera/Unità' if camera else 'Nuova Camera o Unità Ricettiva' }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Struttura *</label>
+                            <select name="struttura_id" class="form-select" required>
+                                {% for s in strutture %}
+                                <option value="{{ s.id }}" {% if camera and camera.struttura_id == s.id %}selected{% endif %}>
+                                    {{ s.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label">Nome Camera / Unità *</label>
+                            <input type="text" name="nome" class="form-control" value="{{ camera.nome if camera else '' }}" placeholder="es. Camera Deluxe 101 o Appartamento Vista Mare" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo</label>
+                            <input type="text" name="tipo" class="form-control" value="{{ camera.tipo if camera else '' }}" placeholder="Doppia, Suite, Appartamento...">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Capienza (persone)</label>
+                            <input type="number" name="capienza" class="form-control" value="{{ camera.capienza if camera else 2 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Prezzo Base / Notte (€)</label>
+                            <input type="number" step="0.01" name="prezzo_base_notte" class="form-control" value="{{ camera.prezzo_base_notte if camera else 0 }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stato</label>
+                            <select name="stato" class="form-select">
+                                {% for st in ['libera', 'occupata', 'manutenzione'] %}
+                                <option value="{{ st }}" {% if camera and camera.stato == st %}selected{% endif %}>{{ st|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Note</label>
+                            <textarea name="note" class="form-control" rows="2">{{ camera.note if camera else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {{ 'Salva Modifiche' if camera else 'Crea Camera' }}
+                        </button>
+                        <a href="{{ url_for('lista_camere') }}" class="btn btn-outline-secondary">Annulla</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

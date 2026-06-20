@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Modifica Prenotazione' if prenotazione else 'Nuova Prenotazione' }} - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-calendar-plus"></i> {{ 'Modifica Prenotazione' if prenotazione else 'Nuova Prenotazione' }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="prenotazioneForm">
+                    <div class="row g-4">
+                        <!-- Struttura e Camera -->
+                        <div class="col-md-6">
+                            <div class="form-section">
+                                <h6 class="text-primary mb-3"><i class="bi bi-building"></i> Struttura e Camera</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Struttura *</label>
+                                    <select name="struttura_id" id="struttura_id" class="form-select" required {% if prenotazione %}disabled{% endif %}>
+                                        {% for s in strutture %}
+                                        <option value="{{ s.id }}" {% if (prenotazione and prenotazione.struttura_id == s.id) or (form_data and form_data.get('struttura_id')|int == s.id) %}selected{% endif %}>
+                                            {{ s.nome }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Camera / Unità *</label>
+                                    <select name="camera_id" id="camera_id" class="form-select" required>
+                                        {% if prenotazione %}
+                                            {% for c in camere %}
+                                            <option value="{{ c.id }}" {% if prenotazione.camera_id == c.id %}selected{% endif %}>{{ c.nome }} ({{ c.tipo or '' }})</option>
+                                            {% endfor %}
+                                        {% else %}
+                                            <option value="">Seleziona prima una struttura...</option>
+                                        {% endif %}
+                                    </select>
+                                    <div class="form-text">Verrà verificata la disponibilità automaticamente.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date e Dettagli -->
+                        <div class="col-md-6">
+                            <div class="form-section">
+                                <h6 class="text-primary mb-3"><i class="bi bi-calendar-range"></i> Date e Dettagli</h6>
+                                
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Data Arrivo *</label>
+                                        <input type="date" name="data_arrivo" class="form-control" 
+                                               value="{{ prenotazione.data_arrivo.strftime('%Y-%m-%d') if prenotazione else (form_data.data_arrivo if form_data else '') }}" required>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Data Partenza *</label>
+                                        <input type="date" name="data_partenza" class="form-control" 
+                                               value="{{ prenotazione.data_partenza.strftime('%Y-%m-%d') if prenotazione else (form_data.data_partenza if form_data else '') }}" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">N. Persone</label>
+                                        <input type="number" name="num_persone" class="form-control" value="{{ prenotazione.num_persone if prenotazione else (form_data.num_persone if form_data else 2) }}">
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Stato</label>
+                                        <select name="stato" class="form-select">
+                                            {% for st in ['richiesta', 'confermata', 'check-in', 'check-out', 'cancellata', 'no-show'] %}
+                                            <option value="{{ st }}" {% if (prenotazione and prenotazione.stato == st) or (form_data and form_data.get('stato') == st) %}selected{% endif %}>
+                                                {{ st|capitalize }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ospite -->
+                        <div class="col-12">
+                            <div class="form-section">
+                                <h6 class="text-primary mb-3"><i class="bi bi-person-plus"></i> Dati Ospite</h6>
+                                
+                                {% if not prenotazione %}
+                                <div class="mb-3">
+                                    <label class="form-label">Seleziona ospite esistente (opzionale)</label>
+                                    <select name="ospite_id" class="form-select">
+                                        <option value="">-- Crea nuovo ospite --</option>
+                                        {% for o in ospiti %}
+                                        <option value="{{ o.id }}">{{ o.nome_completo }} ({{ o.telefono or o.email or '' }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endif %}
+
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Nome *</label>
+                                        <input type="text" name="nome_ospite" class="form-control" 
+                                               value="{{ prenotazione.ospite.nome if prenotazione else (form_data.nome_ospite if form_data else '') }}" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Cognome *</label>
+                                        <input type="text" name="cognome_ospite" class="form-control" 
+                                               value="{{ prenotazione.ospite.cognome if prenotazione else (form_data.cognome_ospite if form_data else '') }}" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Telefono</label>
+                                        <input type="tel" name="telefono_ospite" class="form-control" 
+                                               value="{{ prenotazione.ospite.telefono if prenotazione else (form_data.telefono_ospite if form_data else '') }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email_ospite" class="form-control" 
+                                               value="{{ prenotazione.ospite.email if prenotazione else (form_data.email_ospite if form_data else '') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Doc. Tipo</label>
+                                        <input type="text" name="documento_tipo" class="form-control" placeholder="CI / Passaporto" 
+                                               value="{{ prenotazione.ospite.documento_tipo if prenotazione else (form_data.documento_tipo if form_data else '') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">N. Documento</label>
+                                        <input type="text" name="documento_numero" class="form-control" 
+                                               value="{{ prenotazione.ospite.documento_numero if prenotazione else (form_data.documento_numero if form_data else '') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prezzi e Note -->
+                        <div class="col-md-6">
+                            <div class="form-section h-100">
+                                <h6 class="text-primary mb-3"><i class="bi bi-currency-euro"></i> Prezzi</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Prezzo Totale (€) *</label>
+                                    <input type="number" step="0.01" name="prezzo_totale" class="form-control form-control-lg" 
+                                           value="{{ prenotazione.prezzo_totale if prenotazione else (form_data.prezzo_totale if form_data else 0) }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Acconto già versato (€)</label>
+                                    <input type="number" step="0.01" name="acconto" class="form-control" 
+                                           value="{{ prenotazione.acconto if prenotazione else (form_data.acconto if form_data else 0) }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-section h-100">
+                                <h6 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Informazioni Aggiuntive</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Fonte prenotazione</label>
+                                    <input type="text" name="fonte" class="form-control" placeholder="Booking.com, Sito web, Telefono..." 
+                                           value="{{ prenotazione.fonte if prenotazione else (form_data.fonte if form_data else '') }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Note / Richieste speciali</label>
+                                    <textarea name="note" class="form-control" rows="3">{{ prenotazione.note if prenotazione else (form_data.note if form_data else '') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="{{ url_for('lista_prenotazioni') }}" class="btn btn-outline-secondary">Annulla</a>
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-check2-circle"></i> {{ 'Aggiorna Prenotazione' if prenotazione else 'Crea Prenotazione' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Carica camere dinamicamente quando cambia la struttura
+document.getElementById('struttura_id').addEventListener('change', function() {
+    const strutturaId = this.value;
+    const cameraSelect = document.getElementById('camera_id');
+    
+    if (!strutturaId) {
+        cameraSelect.innerHTML = '<option value="">Seleziona prima una struttura...</option>';
+        return;
+    }
+    
+    fetch(`/api/camere/${strutturaId}`)
+        .then(response => response.json())
+        .then(camere => {
+            cameraSelect.innerHTML = '<option value="">Seleziona camera...</option>';
+            camere.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.nome} (${c.tipo || ''}) - €${c.prezzo_base_notte}/notte`;
+                cameraSelect.appendChild(opt);
+            });
+        })
+        .catch(err => console.error('Errore caricamento camere:', err));
+});
+
+// Auto-seleziona la prima camera se ce n'è una sola (opzionale miglioramento)
+</script>
+{% endblock %}

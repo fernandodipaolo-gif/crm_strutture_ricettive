@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: crm-ricettivo
+    runtime: python
+    repo: https://github.com/tuo-username/crm_strutture_ricettive  # CAMBIA con il tuo repo
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --worker-class gevent --workers 2 app:app
+    envVars:
+      - key: SECRET_KEY
+        sync: false  # Imposta manualmente su Render (genera una stringa lunga e sicura)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crm-ricettivo-db
+          property: connectionString
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+    autoDeploy: true
+
+databases:
+  - name: crm-ricettivo-db
+    plan: free
+    databaseName: crm_ricettivo
+    user: crmuser
+    ipAllowList: []  # Lascia vuoto per accesso da Render
+
+# Istruzioni per Render:
+# 1. Crea il repo su GitHub e pusha tutti i file
+# 2. Su Render → New → Web Service → collega GitHub
+# 3. Render rileverà automaticamente render.yaml
+# 4. Aggiungi le variabili d'ambiente mancanti (SECRET_KEY, email creds)
+# 5. Crea il Database PostgreSQL separatamente e collegalo

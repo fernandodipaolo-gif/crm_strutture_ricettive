@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0"><i class="bi bi-speedometer2 text-primary"></i> Dashboard</h1>
+    <div>
+        <a href="{{ url_for('nuova_prenotazione') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuova Prenotazione
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1">ARRIVI OGGI</h6>
+                        <h2 class="mb-0 text-primary">{{ arrivi_oggi|length }}</h2>
+                    </div>
+                    <i class="bi bi-box-arrow-in-right fs-1 text-primary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1">PARTENZE OGGI</h6>
+                        <h2 class="mb-0 text-warning">{{ partenze_oggi|length }}</h2>
+                    </div>
+                    <i class="bi bi-box-arrow-right fs-1 text-warning opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1">OCCUPAZIONE</h6>
+                        <h2 class="mb-0">{{ occupate_oggi }} / {{ totale_camere }}</h2>
+                        <small class="text-muted">{{ (occupate_oggi / totale_camere * 100)|round(0) if totale_camere > 0 else 0 }}%</small>
+                    </div>
+                    <i class="bi bi-house-door fs-1 text-success opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="text-muted mb-1">RICAVI MESE</h6>
+                        <h2 class="mb-0 text-success">€ {{ ricavi_mese }}</h2>
+                    </div>
+                    <i class="bi bi-currency-euro fs-1 text-success opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Arrivi di oggi -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-box-arrow-in-right text-primary"></i> Arrivi di oggi</h5>
+                <span class="badge bg-primary">{{ arrivi_oggi|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if arrivi_oggi %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ospite</th>
+                                    <th>Struttura / Camera</th>
+                                    <th>Persone</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in arrivi_oggi %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ p.ospite.nome_completo }}</strong><br>
+                                        <small class="text-muted">{{ p.ospite.telefono or '' }}</small>
+                                    </td>
+                                    <td>
+                                        {{ p.struttura.nome }}<br>
+                                        <small class="text-muted">{{ p.camera.nome }}</small>
+                                    </td>
+                                    <td><span class="badge bg-secondary">{{ p.num_persone }}</span></td>
+                                    <td>
+                                        <a href="{{ url_for('dettaglio_prenotazione', id=p.id) }}" class="btn btn-sm btn-outline-primary">Dettagli</a>
+                                        <form action="{{ url_for('cambia_stato_prenotazione', id=p.id) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="stato" value="check-in">
+                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Confermi Check-in?')">
+                                                <i class="bi bi-check2"></i> Check-in
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-x fs-1"></i>
+                        <p class="mt-2 mb-0">Nessun arrivo programmato per oggi</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Partenze di oggi -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-box-arrow-right text-warning"></i> Partenze di oggi</h5>
+                <span class="badge bg-warning text-dark">{{ partenze_oggi|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if partenze_oggi %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ospite</th>
+                                    <th>Struttura / Camera</th>
+                                    <th>Saldo</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in partenze_oggi %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ p.ospite.nome_completo }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ p.struttura.nome }}<br>
+                                        <small class="text-muted">{{ p.camera.nome }}</small>
+                                    </td>
+                                    <td>
+                                        {% if p.saldo > 0 %}
+                                            <span class="text-danger fw-bold">€ {{ p.saldo }}</span>
+                                        {% else %}
+                                            <span class="text-success">Saldato</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('dettaglio_prenotazione', id=p.id) }}" class="btn btn-sm btn-outline-primary">Dettagli</a>
+                                        <form action="{{ url_for('cambia_stato_prenotazione', id=p.id) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="stato" value="check-out">
+                                            <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Confermi Check-out?')">
+                                                <i class="bi bi-check2-all"></i> Check-out
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-check fs-1"></i>
+                        <p class="mt-2 mb-0">Nessuna partenza programmata per oggi</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Prossime prenotazioni -->
+<div class="card mt-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-calendar3 text-info"></i> Prossime prenotazioni (7 giorni)</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if prossime %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data Arrivo</th>
+                            <th>Ospite</th>
+                            <th>Struttura</th>
+                            <th>Camera</th>
+                            <th>Stato</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in prossime %}
+                        <tr>
+                            <td><strong>{{ p.data_arrivo.strftime('%d/%m/%Y') }}</strong></td>
+                            <td>{{ p.ospite.nome_completo }}</td>
+                            <td>{{ p.struttura.nome }}</td>
+                            <td>{{ p.camera.nome }}</td>
+                            <td>
+                                {% set badge_class = {'confermata': 'success', 'richiesta': 'warning', 'check-in': 'primary', 'check-out': 'secondary', 'cancellata': 'danger'}.get(p.stato, 'secondary') %}
+                                <span class="badge badge-stato bg-{{ badge_class }}">{{ p.stato|capitalize }}</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('dettaglio_prenotazione', id=p.id) }}" class="btn btn-sm btn-outline-secondary">Dettagli</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                Nessuna prenotazione imminente.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Ospite: {{ ospite.nome_completo }} - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4">{{ ospite.nome_completo }}</h1>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">Dati Anagrafici</div>
+            <div class="card-body">
+                <p><strong>Email:</strong> {{ ospite.email or '—' }}</p>
+                <p><strong>Telefono:</strong> {{ ospite.telefono or '—' }}</p>
+                <p><strong>Documento:</strong> {{ ospite.documento_tipo or '' }} {{ ospite.documento_numero or '' }}</p>
+                <p><strong>Nazionalità:</strong> {{ ospite.nazionalita or '—' }}</p>
+                {% if ospite.note %}<p><strong>Note:</strong> {{ ospite.note }}</p>{% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">Storico Prenotazioni ({{ prenotazioni|length }})</div>
+            <div class="card-body p-0">
+                {% if prenotazioni %}
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>Data</th><th>Struttura</th><th>Stato</th><th>Prezzo</th><th></th></tr></thead>
+                            <tbody>
+                                {% for p in prenotazioni %}
+                                <tr>
+                                    <td>{{ p.data_arrivo.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ p.struttura.nome }}</td>
+                                    <td><span class="badge bg-secondary">{{ p.stato }}</span></td>
+                                    <td>€ {{ "%.2f"|format(p.prezzo_totale) }}</td>
+                                    <td><a href="{{ url_for('dettaglio_prenotazione', id=p.id) }}" class="btn btn-sm btn-link">Dettagli</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted p-3 mb-0">Nessuna prenotazione per questo ospite.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('lista_ospiti') }}" class="btn btn-outline-secondary mt-4">← Torna agli ospiti</a>
+{% endblock %}
