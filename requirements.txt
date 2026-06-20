@@ -10,3 +10,4 @@ reportlab  # for PDF invoices
 requests  # for potential channel manager
 gunicorn
 gevent>=24.11.1
+psycopg2-binary
