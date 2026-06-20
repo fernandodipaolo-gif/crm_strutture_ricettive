@@ -716,14 +716,16 @@ def init_db():
 
 if __name__ == '__main__':
     with app.app_context():
-        init_db()
+        db.create_all()      # Crea le tabelle nel database
+        init_db()            # Crea dati demo + utente admin
     
     print("\n" + "="*60)
-    print("🚀 CRM Strutture Ricettive avviato!")
-    print("   Apri nel browser: http://127.0.0.1:5000")
+    print("🚀 CRM Ricettivo avviato con successo!")
+    print("   URL: http://127.0.0.1:5000")
     print("="*60 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
+    # Per Render.com
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
 # Per deploy su Render / Production (Gunicorn)
 # Questo permette di usare `gunicorn app:app`
