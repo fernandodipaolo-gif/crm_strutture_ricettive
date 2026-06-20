@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Login - CRM Ricettivo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header text-center bg-primary text-white">
+                    <h4>🔑 Accesso CRM Strutture Ricettive</h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Accedi</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center text-muted small">
+                    Demo:<br>
+                    <strong>admin</strong> / <strong>password123</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
