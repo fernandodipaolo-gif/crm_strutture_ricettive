@@ -1,178 +1,120 @@
 from datetime import datetime, date
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Text, Boolean
-from sqlalchemy.orm import relationship, declarative_base
-from sqlalchemy.sql import func
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy.sql import func
+from werkzeug.security import generate_password_hash, check_password_hash
 
-Base = declarative_base()
+# NON importiamo db qui per evitare circular import
+db = SQLAlchemy()
 
-class Struttura(Base):
+class Struttura(db.Model):
     __tablename__ = 'strutture'
-    
-    id = Column(Integer, primary_key=True)
-    nome = Column(String(150), nullable=False)
-    indirizzo = Column(String(200))
-    citta = Column(String(100))
-    cap = Column(String(10))
-    telefono = Column(String(30))
-    email = Column(String(100))
-    tipo = Column(String(50))  # Hotel, B&B, Appartamento, Villa, etc.
-    num_camere = Column(Integer, default=0)
-    descrizione = Column(Text)
-    created_at = Column(DateTime, default=func.now())
-    
-    camere = relationship("Camera", back_populates="struttura", cascade="all, delete-orphan")
-    prenotazioni = relationship("Prenotazione", back_populates="struttura")
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(150), nullable=False)
+    indirizzo = db.Column(db.String(200))
+    citta = db.Column(db.String(100))
+    cap = db.Column(db.String(10))
+    telefono = db.Column(db.String(30))
+    email = db.Column(db.String(100))
+    tipo = db.Column(db.String(50))
+    num_camere = db.Column(db.Integer, default=0)
+    descrizione = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=func.now())
 
-    def __repr__(self):
-        return f"<Struttura {self.nome}>"
+    camere = db.relationship("Camera", back_populates="struttura", cascade="all, delete-orphan")
+    prenotazioni = db.relationship("Prenotazione", back_populates="struttura")
 
 
-class Camera(Base):
+class Camera(db.Model):
     __tablename__ = 'camere'
-    
-    id = Column(Integer, primary_key=True)
-    struttura_id = Column(Integer, ForeignKey('strutture.id'), nullable=False)
-    nome = Column(String(100), nullable=False)  # es. "Camera Deluxe 101" o "Appartamento Vista Mare"
-    tipo = Column(String(50))  # Singola, Doppia, Matrimoniale, Suite, Appartamento, etc.
-    capienza = Column(Integer, default=2)
-    prezzo_base_notte = Column(Float, default=0.0)
-    note = Column(Text)
-    stato = Column(String(30), default='libera')  # libera, occupata, manutenzione
-    created_at = Column(DateTime, default=func.now())
-    
-    struttura = relationship("Struttura", back_populates="camere")
-    prenotazioni = relationship("Prenotazione", back_populates="camera")
+    id = db.Column(db.Integer, primary_key=True)
+    struttura_id = db.Column(db.Integer, db.ForeignKey('strutture.id'), nullable=False)
+    nome = db.Column(db.String(100), nullable=False)
+    tipo = db.Column(db.String(50))
+    capienza = db.Column(db.Integer, default=2)
+    prezzo_base_notte = db.Column(db.Float, default=0.0)
+    note = db.Column(db.Text)
+    stato = db.Column(db.String(30), default='libera')
+    created_at = db.Column(db.DateTime, default=func.now())
 
-    def __repr__(self):
-        return f"<Camera {self.nome}>"
+    struttura = db.relationship("Struttura", back_populates="camere")
+    prenotazioni = db.relationship("Prenotazione", back_populates="camera")
 
 
-class Ospite(Base):
+class Ospite(db.Model):
     __tablename__ = 'ospiti'
-    
-    id = Column(Integer, primary_key=True)
-    nome = Column(String(80), nullable=False)
-    cognome = Column(String(80), nullable=False)
-    email = Column(String(120))
-    telefono = Column(String(30))
-    documento_tipo = Column(String(30))  # Carta d'identità, Passaporto, etc.
-    documento_numero = Column(String(50))
-    nazionalita = Column(String(50))
-    note = Column(Text)
-    created_at = Column(DateTime, default=func.now())
-    
-    prenotazioni = relationship("Prenotazione", back_populates="ospite")
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    cognome = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100))
+    telefono = db.Column(db.String(30))
+    data_nascita = db.Column(db.Date)
+    luogo_nascita = db.Column(db.String(100))
+    nazionalita = db.Column(db.String(50))
+    sesso = db.Column(db.String(1))
+    tipo_documento = db.Column(db.String(50))
+    numero_documento = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=func.now())
 
-    @property
-    def nome_completo(self):
-        return f"{self.nome} {self.cognome}"
-
-    def __repr__(self):
-        return f"<Ospite {self.nome_completo}>"
+    prenotazioni = db.relationship("Prenotazione", back_populates="ospite")
 
 
-class Prenotazione(Base):
+class Prenotazione(db.Model):
     __tablename__ = 'prenotazioni'
-    
-    id = Column(Integer, primary_key=True)
-    struttura_id = Column(Integer, ForeignKey('strutture.id'), nullable=False)
-    camera_id = Column(Integer, ForeignKey('camere.id'), nullable=False)
-    ospite_id = Column(Integer, ForeignKey('ospiti.id'), nullable=False)
-    
-    data_arrivo = Column(Date, nullable=False)
-    data_partenza = Column(Date, nullable=False)
-    num_notti = Column(Integer)
-    num_persone = Column(Integer, default=1)
-    
-    stato = Column(String(30), default='richiesta')  # richiesta, confermata, check-in, check-out, cancellata, no-show
-    prezzo_totale = Column(Float, default=0.0)
-    acconto = Column(Float, default=0.0)
-    
-    fonte = Column(String(50))  # Booking.com, Airbnb, Sito web, Telefono, Walk-in, etc.
-    note = Column(Text)
-    
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
-    struttura = relationship("Struttura", back_populates="prenotazioni")
-    camera = relationship("Camera", back_populates="prenotazioni")
-    ospite = relationship("Ospite", back_populates="prenotazioni")
-    pagamenti = relationship("Pagamento", back_populates="prenotazione", cascade="all, delete-orphan")
+    id = db.Column(db.Integer, primary_key=True)
+    struttura_id = db.Column(db.Integer, db.ForeignKey('strutture.id'), nullable=False)
+    camera_id = db.Column(db.Integer, db.ForeignKey('camere.id'), nullable=False)
+    ospite_id = db.Column(db.Integer, db.ForeignKey('ospiti.id'), nullable=False)
 
-    @property
-    def saldo(self):
-        totale_pagato = sum(p.importo for p in self.pagamenti if p.stato == 'completato')
-        return round(self.prezzo_totale - totale_pagato, 2)
+    data_arrivo = db.Column(db.Date, nullable=False)
+    data_partenza = db.Column(db.Date, nullable=False)
+    stato = db.Column(db.String(30), default='confermata')
+    numero_adulti = db.Column(db.Integer, default=2)
+    numero_bambini = db.Column(db.Integer, default=0)
+    prezzo_totale = db.Column(db.Float, default=0.0)
+    note = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=func.now())
 
-    @property
-    def totale_pagato(self):
-        return sum(p.importo for p in self.pagamenti if p.stato == 'completato')
-
-    def calcola_notti(self):
-        if self.data_arrivo and self.data_partenza:
-            self.num_notti = (self.data_partenza - self.data_arrivo).days
-        return self.num_notti or 0
-
-    def __repr__(self):
-        return f"<Prenotazione {self.id} - {self.data_arrivo}>"
+    struttura = db.relationship("Struttura", back_populates="prenotazioni")
+    camera = db.relationship("Camera", back_populates="prenotazioni")
+    ospite = db.relationship("Ospite", back_populates="prenotazioni")
+    pagamenti = db.relationship("Pagamento", back_populates="prenotazione", cascade="all, delete-orphan")
 
 
-class Pagamento(Base):
+class Pagamento(db.Model):
     __tablename__ = 'pagamenti'
-    
-    id = Column(Integer, primary_key=True)
-    prenotazione_id = Column(Integer, ForeignKey('prenotazioni.id'), nullable=False)
-    data = Column(Date, default=date.today)
-    importo = Column(Float, nullable=False)
-    metodo = Column(String(30))  # contanti, carta, bonifico, paypal, stripe, etc.
-    stato = Column(String(20), default='completato')  # completato, pending, rimborsato
-    note = Column(Text)
-    transazione_id = Column(String(100))  # per pagamenti online
-    created_at = Column(DateTime, default=func.now())
-    
-    prenotazione = relationship("Prenotazione", back_populates="pagamenti")
+    id = db.Column(db.Integer, primary_key=True)
+    prenotazione_id = db.Column(db.Integer, db.ForeignKey('prenotazioni.id'), nullable=False)
+    importo = db.Column(db.Float, nullable=False)
+    data_pagamento = db.Column(db.DateTime, default=func.now())
+    metodo = db.Column(db.String(50))
+    note = db.Column(db.Text)
 
-    def __repr__(self):
-        return f"<Pagamento {self.id} - {self.importo}€>"
+    prenotazione = db.relationship("Prenotazione", back_populates="pagamenti")
 
 
-# ====================== NUOVI MODELLI PER FUNZIONALITÀ AVANZATE ======================
-
-class User(Base, UserMixin):
-    """Utenti per multi-utente con permessi"""
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    username = Column(String(80), unique=True, nullable=False)
-    email = Column(String(120), unique=True, nullable=False)
-    password_hash = Column(String(256), nullable=False)
-    ruolo = Column(String(20), default='staff')  # admin, manager, receptionist
-    is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=func.now())
-    
-    def __repr__(self):
-        return f"<User {self.username}>"
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    ruolo = db.Column(db.String(30), default='reception')
+    created_at = db.Column(db.DateTime, default=func.now())
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        """Semplice check (in produzione usa werkzeug.security)"""
-        from werkzeug.security import check_password_hash
         return check_password_hash(self.password_hash, password)
 
 
-class TaskPulizia(Base):
-    """Gestione housekeeping / pulizie"""
+class TaskPulizia(db.Model):
     __tablename__ = 'task_pulizia'
-    
-    id = Column(Integer, primary_key=True)
-    camera_id = Column(Integer, ForeignKey('camere.id'), nullable=False)
-    data = Column(Date, nullable=False)
-    stato = Column(String(20), default='da_fare')  # da_fare, in_corso, completato
-    note = Column(Text)
-    assegnato_a = Column(String(100))  # nome del personale
-    created_at = Column(DateTime, default=func.now())
-    
-    camera = relationship("Camera", backref="pulizie")
-    
-    def __repr__(self):
-        return f"<Pulizia Camera {self.camera_id} - {self.data}>"
+    id = db.Column(db.Integer, primary_key=True)
+    camera_id = db.Column(db.Integer, db.ForeignKey('camere.id'), nullable=False)
+    data = db.Column(db.Date, nullable=False)
+    stato = db.Column(db.String(30), default='da_fare')
+    note = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=func.now())
+
+    camera = db.relationship("Camera")
