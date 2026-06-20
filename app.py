@@ -44,7 +44,7 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 mail = Mail(app)
 
 # Importa modelli
-from models import Struttura, Camera, Ospite, Prenotazione, Pagamento, Base, User, TaskPulizia
+from models import db, Struttura, Camera, Ospite, Prenotazione, Pagamento, User, TaskPulizia
 
 @login_manager.user_loader
 def load_user(user_id):
